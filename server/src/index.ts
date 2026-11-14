@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { pendoIdentity, pendoTrack } from "./pendo";
 
 const app = express();
 
@@ -21,21 +22,42 @@ app.get("/api/state", (_req, res) => {
   res.json(state());
 });
 
-app.post("/api/increment", (_req, res) => {
+app.post("/api/increment", (req, res) => {
+  const previous = counter;
   counter += 1;
   lastAction = "increment";
+  // Track Event: the increment was saved on the server.
+  pendoTrack("Counter incremented", pendoIdentity(req), {
+    previous_value: previous,
+    counter_value: counter,
+    last_action: lastAction,
+  });
   res.json(state());
 });
 
-app.post("/api/decrement", (_req, res) => {
+app.post("/api/decrement", (req, res) => {
+  const previous = counter;
   counter -= 1;
   lastAction = "decrement";
+  // Track Event: the decrement was saved on the server.
+  pendoTrack("Counter decremented", pendoIdentity(req), {
+    previous_value: previous,
+    counter_value: counter,
+    last_action: lastAction,
+  });
   res.json(state());
 });
 
-app.post("/api/reset", (_req, res) => {
+app.post("/api/reset", (req, res) => {
+  const previous = counter;
   counter = 0;
   lastAction = "reset";
+  // Track Event: the counter was reset to 0 on the server.
+  pendoTrack("Counter reset", pendoIdentity(req), {
+    previous_value: previous,
+    counter_value: counter,
+    last_action: lastAction,
+  });
   res.json(state());
 });
 

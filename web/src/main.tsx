@@ -4,6 +4,8 @@ import App from "./App";
 
 let visitorId = localStorage.getItem('demo-visitor-id');
 let accountId = localStorage.getItem('demo-account-id');
+const isNewVisitor = !visitorId;
+const isNewAccount = !accountId;
 
 if (!visitorId) {
   visitorId = 'visitor-' + Math.random().toString(36).slice(2);
@@ -23,6 +25,16 @@ pendo.initialize({
   },
   sessionReplay: { isActive: true },
 });
+
+// Track Event: first visit only. The IDs stored in localStorage act as the
+// persistent guard, so this fires once when they are created.
+if (isNewVisitor || isNewAccount) {
+  pendo.track('Visitor and account identified', {
+    new_visitor: isNewVisitor,
+    new_account: isNewAccount,
+    session_replay_active: true,
+  });
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
