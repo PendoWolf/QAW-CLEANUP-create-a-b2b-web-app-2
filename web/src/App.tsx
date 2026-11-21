@@ -10,6 +10,23 @@ function trackEvent(name: string) {
   }
 }
 
+// Fires when a counter API call fails. The success events only fire after a
+// request succeeds, so this captures the failure outcome. Sent without the
+// "demo-" prefix because the event name is registered verbatim in Pendo.
+function trackActionFailed(action: string, errorMessage: string, counter: number) {
+  try {
+    if (typeof window !== "undefined") {
+      window.pendo?.track?.("counter_action_failed", {
+        action,
+        errorMessage: String(errorMessage).substring(0, 200),
+        counter,
+      });
+    }
+  } catch {
+    // Never let tracking break the app.
+  }
+}
+
 export default function App() {
   const [state, setState] = useState<AppState>({ counter: 0, lastAction: "none" });
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +37,9 @@ export default function App() {
       setState(await fn());
       trackEvent(name);
     } catch (e) {
-      setError((e as Error).message);
+      const message = (e as Error).message;
+      setError(message);
+      trackActionFailed(name, message, state.counter);
     }
   };
 
